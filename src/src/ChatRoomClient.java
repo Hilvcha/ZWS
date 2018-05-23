@@ -185,8 +185,8 @@ class ClientFrame extends JFrame{
                 }
             }
         });
-
-        c.add(textArea,BorderLayout.CENTER);
+        JScrollPane talkwindow=new JScrollPane(textArea);
+        c.add(talkwindow,BorderLayout.CENTER);
         c.add(contentPane,BorderLayout.SOUTH);
         setSize(600,370);
         setVisible(true);
@@ -233,10 +233,12 @@ class ClientFrame extends JFrame{
                         textArea.append(str.replaceAll("%START%",""));
                         textArea.append(str.replaceAll("%END%",""));
                         textArea.append(str+"\n");
-
+                        textArea.setSelectionStart(textArea.getText().length());
                         continue;
                     }
                     textArea.append(str.split(":",2)[1]+"\n");
+                    textArea.setSelectionStart(textArea.getText().length());
+
                     while(true){
                         str=client.reciveMessage();
                         if(str.contains("%END%")){
@@ -244,6 +246,8 @@ class ClientFrame extends JFrame{
                             break;
                         }
                         textArea.append(str+"\n");
+                        textArea.setSelectionStart(textArea.getText().length());
+
                     }
                 }
             }
