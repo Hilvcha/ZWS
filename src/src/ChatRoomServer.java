@@ -50,6 +50,7 @@ public class ChatRoomServer {
                         socket.close();
                         return;
                     }
+                    System.out.println("将要向所有用户发送:"+str);
                     sendMessageTOAllClient(str);
                 }
             } catch (IOException e) {

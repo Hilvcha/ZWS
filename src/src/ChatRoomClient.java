@@ -1,9 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -57,8 +54,29 @@ public class ChatRoomClient {
 
 //LinkServerFrame 登录服务器窗体
 class LinkServerFrame extends JFrame{
-
+    private JTextField JTip;
+    private JTextField JTusername;
+    private void linkPerformed(){
+        //  客户端连接时文本框不为空
+        if(!JTip.getText().equals("")&&!JTusername.getText().equals("")){
+            dispose();
+            //  销毁客户端窗体
+            System.out.println("正在注册："+JTusername.getText().trim()+"···");
+            ClientFrame clientFrame=new ClientFrame(JTip.getText().trim(),JTusername.getText().trim());
+            clientFrame.setVisible(true);
+        }else{
+            JOptionPane.showMessageDialog(null,"文本框内容不能为空","warning",JOptionPane.WARNING_MESSAGE);
+        }
+    }
     LinkServerFrame(){
+        int windowWidth = getWidth(); // 获得窗口宽
+        int windowHeight = getHeight(); // 获得窗口高
+        Toolkit kit = Toolkit.getDefaultToolkit(); // 定义工具包
+        Dimension screenSize = kit.getScreenSize(); // 获取屏幕的尺寸
+        int screenWidth = screenSize.width; // 获取屏幕的宽
+        int screenHeight = screenSize.height; // 获取屏幕的高
+        setLocation(screenWidth/2-windowWidth/2, screenHeight/2-windowHeight/2);// 设置窗口居中显示
+
         setTitle("zws~");
         Container c=getContentPane();
         setLayout(new GridLayout(3,1,100,30));
@@ -68,15 +86,24 @@ class LinkServerFrame extends JFrame{
         //ip面板组件
         JLabel JLip=new JLabel("服务器ip：",JLabel.CENTER);
         JLip.setFont(new Font("黑体",Font.PLAIN,50));
-        JTextField JTip=new JTextField("localhost");
+        JTip=new JTextField("localhost");
         JTip.setFont(new Font("黑体",Font.PLAIN,50));
         JTip.setColumns(21);
         JPip.add(JLip); JPip.add(JTip);
-
+        JTip.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyPressed(e);
+                char word=e.getKeyChar();
+                if(word=='\n'){
+                    linkPerformed();
+                }
+            }
+        });
         //username面板组件
         JLabel JLusername=new JLabel("客户端name：",JLabel.CENTER);
         JLusername.setFont(new Font("黑体",Font.PLAIN,50));
-        JTextField JTusername=new JTextField("小机灵鬼");
+        JTusername=new JTextField("小机灵鬼");
         JTusername.setColumns(21);
         JTusername.setFont(new Font("黑体",Font.PLAIN,50));
         JPUserName.add(JLusername); JPUserName.add(JTusername);
@@ -88,16 +115,7 @@ class LinkServerFrame extends JFrame{
         JBlogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //  客户端连接时文本框不为空
-                if(!JTip.getText().equals("")&&!JTusername.getText().equals("")){
-                    dispose();
-                    //  销毁客户端窗体
-                    System.out.println("正在注册："+JTusername.getText().trim()+"···");
-                    ClientFrame clientFrame=new ClientFrame(JTip.getText().trim(),JTusername.getText().trim());
-                    clientFrame.setVisible(true);
-                }else{
-                    JOptionPane.showMessageDialog(null,"文本框内容不能为空","warning",JOptionPane.WARNING_MESSAGE);
-                }
+                linkPerformed();
             }
         });
         c.add(JPip); c.add(JPUserName); c.add(JBlogin);
@@ -115,6 +133,12 @@ class ClientFrame extends JFrame{
     private JTextArea textArea;
     private String userName;
     private ChatRoomClient client;
+    private void sendPerformed(){
+        Date date=new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+        client.sendMessage("%START%:"+userName+"  "+df.format(date)+":\n"+ tfMessage.getText()+"%END%");
+        tfMessage.setText("");
+    }
 
     ClientFrame(String ip,String userName){
         setTitle(userName+"的聊天室");
@@ -123,7 +147,7 @@ class ClientFrame extends JFrame{
         this.userName=userName;
 
         try {
-            client=new ChatRoomClient(ip,4569);
+            client=new ChatRoomClient(ip,4560);
         }catch (UnknownHostException el){
             System.out.println("host 无法处理");
             el.printStackTrace();
@@ -133,14 +157,13 @@ class ClientFrame extends JFrame{
         ReadMessageThread messageThread=new ReadMessageThread();
         messageThread.start();
 //        发送消息事件
+
         btnSend=new JButton("发送");
+
         btnSend.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Date date=new Date();
-                SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-                client.sendMessage(userName+"  "+df.format(date)+":\n"+ tfMessage.getText());
-                tfMessage.setText("");
+                sendPerformed();
             }
         });
         lblUsername=new JLabel(userName);
@@ -151,6 +174,17 @@ class ClientFrame extends JFrame{
         contentPane.add(lblUsername);
         contentPane.add(tfMessage);
         contentPane.add(btnSend);
+        tfMessage.addKeyListener(new KeyAdapter() {
+            char word;
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyTyped(e);
+                word=e.getKeyChar();
+                if(word=='\n'){
+                    sendPerformed();
+                }
+            }
+        });
 
         c.add(textArea,BorderLayout.CENTER);
         c.add(contentPane,BorderLayout.SOUTH);
@@ -158,6 +192,15 @@ class ClientFrame extends JFrame{
         setVisible(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
+        //刚打开窗口的焦点聚焦
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                super.windowOpened(e);
+                tfMessage.requestFocusInWindow();
+            }
+        });
+
         //        关闭聊天室客户端事件
         this.addWindowListener(new WindowAdapter() {
             @Override
@@ -183,7 +226,26 @@ class ClientFrame extends JFrame{
         public void run(){
             while(true){
                 String str=client.reciveMessage();
-                textArea.append(str+"\n");
+                System.out.println("接收到消息:"+str);
+                if(str.contains("%START%")){
+//                    System.out.println("将要打印文本："+str.split(":")[0]);
+                    if(str.contains("%END%")){//开始结束在同一行
+                        textArea.append(str.replaceAll("%START%",""));
+                        textArea.append(str.replaceAll("%END%",""));
+                        textArea.append(str+"\n");
+
+                        continue;
+                    }
+                    textArea.append(str.split(":",2)[1]+"\n");
+                    while(true){
+                        str=client.reciveMessage();
+                        if(str.contains("%END%")){
+                            textArea.append(str.replaceAll("%END%","")+"\n");
+                            break;
+                        }
+                        textArea.append(str+"\n");
+                    }
+                }
             }
         }
     }
