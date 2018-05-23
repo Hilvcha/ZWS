@@ -148,6 +148,7 @@ class ClientFrame extends JFrame{
 
         try {
             client=new ChatRoomClient(ip,4560);
+            client.sendMessage("%NAME%:"+userName);
         }catch (UnknownHostException el){
             System.out.println("host 无法处理");
             el.printStackTrace();
@@ -221,12 +222,17 @@ class ClientFrame extends JFrame{
         });
 
     }
-
+//负责不断解析收到的一行一行的信息
     private class ReadMessageThread extends Thread{
         public void run(){
             while(true){
                 String str=client.reciveMessage();
                 System.out.println("接收到消息:"+str);
+                if (str.contains("%NAMEERROR%")){
+                    JOptionPane.showMessageDialog(ClientFrame.this,"你的名字重复了~");
+                    ClientFrame.this.dispose();
+                    new LinkServerFrame();
+                }
                 if(str.contains("%START%")){
 //                    System.out.println("将要打印文本："+str.split(":")[0]);
                     if(str.contains("%END%")){//开始结束在同一行

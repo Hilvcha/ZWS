@@ -6,11 +6,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class ChatRoomServer {
     private ServerSocket serverSocket;
-    private HashSet<Socket> allSocket;
+    private HashMap<Socket,String> alluser;
 //    聊天室服务器构造方法
     public ChatRoomServer(){
         try {
@@ -18,15 +19,13 @@ public class ChatRoomServer {
         }catch (IOException e){
             e.printStackTrace();
         }
-        allSocket=new HashSet<>();
+        alluser=new HashMap<>();
     }
 //    启动服务器
     public void startService() throws IOException{
+        System.out.println("服务器已启动，等待用户加入···");
         while  (true){
-            System.out.println("服务器已启动，等待用户加入···");
             Socket s= serverSocket.accept();
-            System.out.println("用户已进入聊天室");
-            allSocket.add(s);
             new ServerThread(s).start();
         }
     }
@@ -44,21 +43,39 @@ public class ChatRoomServer {
                 br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 while (true) {
                     String str = br.readLine();
+                    if(str.contains("%NAME%")){
+                        String name=str.split(":")[1];
+                        //用户名有重复
+                        if(alluser.values().contains(name)){
+                            String message="%NAMEERROR%";
+                            sendMessageToONEClient(message,socket);
+                        }else {
+                            alluser.put(socket,name);
+                        }
+                        continue;
+                    }
                     if (str.contains("%EXIT%")) {
-                        allSocket.remove(socket);
+                        alluser.remove(socket);
                         sendMessageTOAllClient(str.split(":")[1] + "用户已退出聊天室");
                         socket.close();
                         return;
                     }
-                    System.out.println("将要向所有用户发送:"+str);
+
                     sendMessageTOAllClient(str);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        public void sendMessageToONEClient(String message,Socket s) throws IOException{
+            System.out.println("将要向"+s+"发送:"+message);
+            PrintWriter pw=new PrintWriter(s.getOutputStream());
+            pw.println(message);
+            pw.flush();
+        }
         public void sendMessageTOAllClient(String message) throws IOException{
-                for(Socket s:allSocket){
+            System.out.println("将要向所有用户发送:"+message);
+                for(Socket s:alluser.keySet()){
                     PrintWriter pw=new PrintWriter(s.getOutputStream());
                     pw.println(message);
                     pw.flush();
