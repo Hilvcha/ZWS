@@ -9,6 +9,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
 
 
 public class ChatRoomClient {
@@ -37,7 +39,10 @@ public class ChatRoomClient {
     // 接受消息
     public String reciveMessage() {
         try {
-            return bufferedReader.readLine();
+            String str=bufferedReader.readLine();
+            System.out.println("接收到消息:" + str);
+
+            return str;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -141,6 +146,10 @@ class ClientFrame extends JFrame {
     private JTextArea textArea;
     private String userName;
     private ChatRoomClient client;
+    private DefaultListModel onlineuser;
+    private JList onlineuserlist;
+    private JScrollPane onlineuserP;
+
 
     private void sendPerformed() {
         Date date = new Date();
@@ -155,18 +164,25 @@ class ClientFrame extends JFrame {
         setLayout(new BorderLayout());
         this.userName = userName;
 
+        onlineuser=new DefaultListModel();
+        ReadMessageThread messageThread = new ReadMessageThread();
+
         try {
             client = new ChatRoomClient(ip, 4560);
+            messageThread.start();
             client.sendMessage("%NAME%:" + userName);
+            client.sendMessage("%REQUESTALLUSER%");
+
         } catch (UnknownHostException el) {
             System.out.println("host 无法处理");
             el.printStackTrace();
         } catch (IOException el) {
             el.printStackTrace();
         }
-        ReadMessageThread messageThread = new ReadMessageThread();
-        messageThread.start();
 //        发送消息事件
+
+        onlineuserlist=new JList(onlineuser);
+
 
         btnSend = new JButton("发送");
 
@@ -184,6 +200,7 @@ class ClientFrame extends JFrame {
         tfMessage = new JTextField();
         tfMessage.setColumns(20);
         textArea = new JTextArea();
+
         contentPane.add(lblUsername);
         contentPane.add(tfMessage);
         contentPane.add(btnSend);
@@ -202,10 +219,19 @@ class ClientFrame extends JFrame {
                 }
             }
         });
+        onlineuserP=new JScrollPane(onlineuserlist);
         JScrollPane talkwindow = new JScrollPane(textArea);
+        onlineuserP.setBorder(BorderFactory.createTitledBorder("在线用户"));
+        JPanel westp=new JPanel(new BorderLayout());
+        westp.add(onlineuserP,BorderLayout.CENTER);
+        JButton chatone=new JButton("私聊");
+        westp.add(chatone,BorderLayout.SOUTH);
+        talkwindow.setBorder(BorderFactory.createLineBorder(Color.BLUE));
         c.add(talkwindow, BorderLayout.CENTER);
         c.add(contentPane, BorderLayout.SOUTH);
-        setSize(600, 370);
+        c.add(westp,BorderLayout.WEST);
+        setSize(650, 401);
+
         setVisible(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -222,9 +248,12 @@ class ClientFrame extends JFrame {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent atg0) {
+                System.out.println(onlineuser);
+
                 super.windowClosing(atg0);
                 int op = JOptionPane.showConfirmDialog(ClientFrame.this, "确定要退出聊天室吗~", "确定", JOptionPane.YES_NO_OPTION);
                 if (op == JOptionPane.YES_OPTION) {
+                    messageThread.exit=true;
                     client.sendMessage("%EXIT%:" + userName);
                     try {
                         Thread.sleep(200);
@@ -241,16 +270,36 @@ class ClientFrame extends JFrame {
 
     //负责不断解析收到的一行一行的信息
     private class ReadMessageThread extends Thread {
+        public volatile boolean exit = false;
         public void run() {
-            while (true) {
+            while (!exit) {
                 String str = client.reciveMessage();
-                System.out.println("接收到消息:" + str);
                 if (str.contains("%NAMEERROR%")) {
                     JOptionPane.showMessageDialog(ClientFrame.this,"你的名字重复了~","warning",JOptionPane.WARNING_MESSAGE);
                     ClientFrame.this.dispose();
                     new LinkServerFrame();
                 }
-                if (str.contains("%START%")) {
+                else if(str.contains("%USERSTART%")){
+                    while (true){
+                        str = client.reciveMessage();
+                        if(str.contains("%USEREND%")){
+                            break;
+                        }
+                        if(onlineuser.contains(str)){}
+                        else{
+                            onlineuser.addElement(str);
+                        }
+
+
+                    }
+                }
+                else if(str.contains("%USERADD%")){
+                    onlineuser.addElement(str.split(":")[1]);
+                }
+                else if(str.contains("%USERDEL%")){
+                    onlineuser.removeElement(str.split(":")[1]);
+                }
+                else if (str.contains("%START%")) {
 //                    System.out.println("将要打印文本："+str.split(":")[0]);
                     if (str.contains("%END%")) {//开始结束在同一行
                         textArea.append(str.replaceAll("%START%", ""));

@@ -54,17 +54,24 @@ public class ChatRoomServer {
                             sendMessageToONEClient(message, socket);
                         } else {
                             alluser.put(socket, name);
+                            sendMessageTOAllClient("%USERADD%:"+name);
                         }
                         continue;
-                    }
-                    if (str.contains("%EXIT%")) {
+                    } else if (str.contains("%EXIT%")) {
+                        sendMessageTOAllClient("%USERDEL%:"+alluser.get(socket));
                         alluser.remove(socket);
                         sendMessageTOAllClient(str.split(":")[1] + "用户已退出聊天室");
                         socket.close();
                         return;
+                    } else if (str.contains("%REQUESTALLUSER%")) {
+                        sendMessageToONEClient("%USERSTART%", socket);
+                        for (String name : alluser.values()) {
+                            sendMessageToONEClient(name, socket);
+                        }
+                        sendMessageToONEClient("%USEREND%",socket);
+                    }else {
+                        sendMessageTOAllClient(str);
                     }
-
-                    sendMessageTOAllClient(str);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
