@@ -27,7 +27,9 @@ public class ChatRoomClient {
     }
 
     public static void main(String[] args) {
-        new LinkServerFrame();
+        LinkServerFrame linkserver;
+
+        linkserver=new LinkServerFrame();
     }
 
     //发送消息
@@ -66,24 +68,18 @@ class LinkServerFrame extends JFrame {
     private void linkPerformed() {
         //  客户端连接时文本框不为空
         if (!JTip.getText().equals("") && !JTusername.getText().equals("")) {
-            dispose();
+            setVisible(false);
             //  销毁客户端窗体
             System.out.println("正在注册：" + JTusername.getText().trim() + "···");
             ClientFrame clientFrame = new ClientFrame(JTip.getText().trim(), JTusername.getText().trim());
             clientFrame.setVisible(true);
+            dispose();
         } else {
             JOptionPane.showMessageDialog(null, "文本框内容不能为空", "warning", JOptionPane.WARNING_MESSAGE);
         }
     }
 
     LinkServerFrame() {
-        int windowWidth = getWidth(); // 获得窗口宽
-        int windowHeight = getHeight(); // 获得窗口高
-        Toolkit kit = Toolkit.getDefaultToolkit(); // 定义工具包
-        Dimension screenSize = kit.getScreenSize(); // 获取屏幕的尺寸
-        int screenWidth = screenSize.width; // 获取屏幕的宽
-        int screenHeight = screenSize.height; // 获取屏幕的高
-        setLocation(screenWidth / 2 - windowWidth / 2, screenHeight / 2 - windowHeight / 2);// 设置窗口居中显示
 
         setTitle("zws~");
         Container c = getContentPane();
@@ -132,6 +128,15 @@ class LinkServerFrame extends JFrame {
         c.add(JPUserName);
         c.add(JBlogin);
         setSize(700, 432);
+        int windowWidth = getWidth(); // 获得窗口宽
+        int windowHeight = getHeight(); // 获得窗口高
+        Toolkit kit = Toolkit.getDefaultToolkit(); // 定义工具包
+        Dimension screenSize = kit.getScreenSize(); // 获取屏幕的尺寸
+        int screenWidth = screenSize.width; // 获取屏幕的宽
+        int screenHeight = screenSize.height; // 获取屏幕的高
+        System.out.println(getSize());
+        setLocation(screenWidth / 2 - windowWidth / 2, screenHeight / 2 - windowHeight / 2);// 设置窗口居中显示
+
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -275,8 +280,8 @@ class ClientFrame extends JFrame {
             while (!exit) {
                 String str = client.reciveMessage();
                 if (str.contains("%NAMEERROR%")) {
-                    JOptionPane.showMessageDialog(ClientFrame.this,"你的名字重复了~","warning",JOptionPane.WARNING_MESSAGE);
                     ClientFrame.this.dispose();
+                    JOptionPane.showMessageDialog(ClientFrame.this,"你的名字重复了~","warning",JOptionPane.WARNING_MESSAGE);
                     new LinkServerFrame();
                 }
                 else if(str.contains("%USERSTART%")){

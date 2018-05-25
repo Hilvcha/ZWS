@@ -79,7 +79,7 @@ public class ChatRoomServer {
         }
 
         public void sendMessageToONEClient(String message, Socket s) throws IOException {
-            System.out.println("将要向" + s + "发送:" + message);
+            System.out.println("将要向" + alluser.get(s) + "发送:" + message);
             PrintWriter pw = new PrintWriter(s.getOutputStream());
             pw.println(message);
             pw.flush();
