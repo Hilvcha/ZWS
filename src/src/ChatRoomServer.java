@@ -69,8 +69,37 @@ public class ChatRoomServer {
                             sendMessageToONEClient(name, socket);
                         }
                         sendMessageToONEClient("%USEREND%",socket);
-                    }else {
-                        sendMessageTOAllClient(str);
+                    }else if(str.contains("%ALL%")){
+                        sendMessageTOAllClient("%ALL%");
+                        while (true){
+                            str=br.readLine();
+                            sendMessageTOAllClient(str);
+                            if(str.contains("%END%")){
+                                break;
+                            }
+                        }
+                    }else if(str.contains("%ONE%")){
+                        String remotename=str.split(":")[1];
+                        Socket remoteskt=socket;
+
+                        for (Socket skt : alluser.keySet()) {
+                            if(alluser.get(skt).equals(remotename)){
+                                remoteskt=skt;
+                                sendMessageToONEClient("%ONE%:"+alluser.get(socket), remoteskt);
+                                sendMessageToONEClient("%ONE%:"+remotename, socket);
+
+                                break;
+                            }
+                        }
+                        while (true){
+
+                            str=br.readLine();
+                            sendMessageToONEClient(str,remoteskt);
+                            sendMessageToONEClient(str,socket);
+                            if(str.contains("%END%")){
+                                break;
+                            }
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -97,6 +126,7 @@ public class ChatRoomServer {
 
     public static void main(String[] args) {
         try {
+
             new ChatRoomServer().startService();
         } catch (IOException e) {
             e.printStackTrace();
