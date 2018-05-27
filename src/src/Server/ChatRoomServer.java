@@ -1,4 +1,4 @@
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+package Server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.HashSet;
+
 
 public class ChatRoomServer {
     private ServerSocket serverSocket;
@@ -17,6 +17,7 @@ public class ChatRoomServer {
     public ChatRoomServer() {
         try {
             serverSocket = new ServerSocket(4560);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
