@@ -26,7 +26,6 @@ class ClientFrame extends JFrame {
         Date date = new Date();
         SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
         client.sendMessage("%START%:" + userName + "  " + df.format(date) + ":\n" + tfMessage.getText() + "%END%");
-        tfMessage.setText("");
     }
 
     ClientFrame(String ip, String userName) {
@@ -139,12 +138,14 @@ class ClientFrame extends JFrame {
                             client.sendMessage("%ONE%:" + remotename);
                             sendPerformed();
                         }
+                        tfMessage.setText("");
                     }
                 } else {
                     if (tfMessage.getText().equals("")) {
                     } else {
                         client.sendMessage("%ALL%");
                         sendPerformed();
+                        tfMessage.setText("");
                     }
                 }
 
@@ -248,7 +249,7 @@ class ClientFrame extends JFrame {
                 else if(str.contains("%ALL%")||str.contains("%ONE%")){
                     if(str.contains("%ONE%")){
                         String remotename=str.split(":")[1];
-                        textArea.append("[私聊]:");
+                        textArea.append("[与"+remotename+"的私聊]"+"\n");
                     }
                     str = client.reciveMessage();
                     if (str.contains("%START%")) {
@@ -266,7 +267,7 @@ class ClientFrame extends JFrame {
                         while (true) {
                             str = client.reciveMessage();
                             if (str.contains("%END%")) {
-                                textArea.append(str.replaceAll("%END%", "") + "\n");
+                                textArea.append(str.replaceAll("%END%", "") + "\n\n");
                                 break;
                             }
                             textArea.append(str + "\n");
