@@ -30,8 +30,15 @@ class ClientFrame extends JFrame {
     }
 
     ClientFrame(String ip, String userName) {
+
+        ImageIcon img = new ImageIcon("image/_寒冰射手.jpg");//这是背景图片
+        JLabel imgLabel = new JLabel(img);//将背景图放在标签里。
+        this.getLayeredPane().add(imgLabel, new Integer(Integer.MIN_VALUE));
+        imgLabel.setBounds(0,0,img.getIconWidth(), img.getIconHeight());
+
         setTitle(userName + "的聊天室");
         Container c = getContentPane();
+        ((JComponent) c).setOpaque(false); //注意这里，将内容面板设为透明。这样LayeredPane面板中的背景才能显示出来。
         setLayout(new BorderLayout());
         this.userName = userName;
 
@@ -53,9 +60,14 @@ class ClientFrame extends JFrame {
 //        发送消息事件
 
         onlineuserlist = new JList(onlineuser);
+        onlineuserlist.setOpaque(false);
+//        (JLabel)onlineuserlist.getCellRenderer.setOpaque(false);
+        onlineuserlist.setBackground(new Color(0, 0, 0, 0));
 
 
-        btnSend = new JButton("发送");
+        btnSend = new JButton(new ImageIcon("image/fasong.png"));
+        btnSend.setBorderPainted(false);//不绘制边框
+        btnSend.setContentAreaFilled(false);
 
 
         lblUsername = new JLabel(userName);
@@ -63,6 +75,10 @@ class ClientFrame extends JFrame {
         tfMessage = new JTextField();
         tfMessage.setColumns(20);
         textArea = new JTextArea();
+        lblUsername.setOpaque(false);
+        contentPane.setOpaque(false);
+        tfMessage.setOpaque(false);
+        textArea.setOpaque(false);
 
         contentPane.add(lblUsername);
         contentPane.add(tfMessage);
@@ -82,21 +98,46 @@ class ClientFrame extends JFrame {
                 }
             }
         });
+
         onlineuserP = new JScrollPane(onlineuserlist);
         JScrollPane talkwindow = new JScrollPane(textArea);
-        onlineuserP.setBorder(BorderFactory.createTitledBorder("在线用户"));
+        talkwindow.setPreferredSize(new Dimension(400, 340));
+
         JPanel westp = new JPanel(new BorderLayout());
         westp.add(onlineuserP, BorderLayout.CENTER);
+        westp.setPreferredSize(new Dimension(200, 350));
         JCheckBox chatone = new JCheckBox("私聊");
-        chatone.setBackground(Color.yellow);
+//        chatone.setBackground(Color.yellow);
         chatone.setFont(new Font("微软雅黑", Font.BOLD, 15));
 
+//        onlineuserP.setBorder(BorderFactory.createLineBorder(Color.getHSBColor(0.3138f, 0.1f, 1f)));
+        onlineuserP.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("在线用户"),BorderFactory.createLineBorder(Color.getHSBColor(0.3138f, 0.1f, 1f))));
+//        onlineuserP.setBorder(BorderFactory.createTitledBorder("在线用户"));
+        talkwindow.setBorder(BorderFactory.createLineBorder(Color.getHSBColor(0.3138f, 0.1f, 1f)));
+
+
+        JPanel JP = new JPanel(/*new GridLayout(1, 2)*/);
+        JP.setOpaque(false);
+        JP.add(westp);
+        JP.add(talkwindow);
+        JP.setPreferredSize(new Dimension(600, 350));
+
+
+
+        onlineuserP.setOpaque(false);
+        onlineuserP.getViewport().setOpaque(false);
+        talkwindow.setOpaque(false);
+        talkwindow.getViewport().setOpaque(false);
+        westp.setOpaque(false);
+        chatone.setOpaque(false);
+
         westp.add(chatone, BorderLayout.SOUTH);
-        talkwindow.setBorder(BorderFactory.createLineBorder(Color.BLUE));
-        c.add(talkwindow, BorderLayout.CENTER);
+
+        c.add(JP,BorderLayout.NORTH);
+//        c.add(talkwindow, BorderLayout.CENTER);
         c.add(contentPane, BorderLayout.SOUTH);
-        c.add(westp, BorderLayout.WEST);
-        setSize(650, 401);
+//        c.add(westp, BorderLayout.WEST);
+        setSize(768, 432);
 
         setVisible(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);

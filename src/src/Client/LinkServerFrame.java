@@ -28,19 +28,39 @@ public class LinkServerFrame extends JFrame {
     }
 
     LinkServerFrame() {
+        //背景
+        ImageIcon img = new ImageIcon("image/_北地之怒.jpg");//这是背景图片
+        JLabel imgLabel = new JLabel(img);//将背景图放在标签里。
+        this.getLayeredPane().add(imgLabel, new Integer(Integer.MIN_VALUE));
+        imgLabel.setBounds(0,0,img.getIconWidth(), img.getIconHeight());
 
         setTitle("zws~");
         Container c = getContentPane();
-        setLayout(new GridLayout(3, 1, 100, 30));
-        JPanel JPip = new JPanel(new GridLayout(1, 2));
-        JPanel JPUserName = new JPanel(new GridLayout(1, 2));
+        setLayout(new GridLayout(4, 1));
+        JPanel JPip = new JPanel();
+        JPanel JPUserName = new JPanel();
+
+
+        ((JComponent) c).setOpaque(false); //注意这里，将内容面板设为透明。这样LayeredPane面板中的背景才能显示出来。
+        JPip.setOpaque(false);
+        JPUserName.setOpaque(false);
+
+        //hello
+        JLabel JLtitle = new JLabel("BEST WISHES FOR YOU!", JLabel.CENTER);
+        JLtitle.setOpaque(false);
+        JLtitle.setFont(new Font("黑体", Font.PLAIN, 50));
+        JLtitle.setForeground(Color.getHSBColor(0.3138f, 0.1f, 1f));
 
         //ip面板组件
-        JLabel JLip = new JLabel("服务器ip：", JLabel.CENTER);
-        JLip.setFont(new Font("黑体", Font.PLAIN, 50));
+        JLabel JLip = new JLabel("服务器ip  ：", JLabel.CENTER);
+        JLip.setFont(new Font("黑体", Font.PLAIN, 30));
         JTip = new JTextField("localhost");
-        JTip.setFont(new Font("黑体", Font.PLAIN, 50));
+        JTip.setFont(new Font("黑体", Font.PLAIN, 30));
         JTip.setColumns(21);
+        JLip.setForeground(Color.getHSBColor(0.3138f, 0.1f, 1f));
+        JTip.setForeground(Color.getHSBColor(0.6444f, 0.82f, 0.44f));
+        JLip.setOpaque(false);//透明
+        JTip.setOpaque(false);//
         JPip.add(JLip);
         JPip.add(JTip);
         JTip.addKeyListener(new KeyAdapter() {
@@ -55,29 +75,47 @@ public class LinkServerFrame extends JFrame {
         });
         //username面板组件
         JLabel JLusername = new JLabel("客户端name：", JLabel.CENTER);
-        JLusername.setFont(new Font("黑体", Font.PLAIN, 50));
+        JLusername.setFont(new Font("黑体", Font.PLAIN, 30));
         JTusername = new JTextField("小机灵鬼");
         JTusername.setColumns(21);
-        JTusername.setFont(new Font("黑体", Font.PLAIN, 50));
+        JTusername.setFont(new Font("黑体", Font.PLAIN, 30));
+        JLusername.setForeground(Color.getHSBColor(0.3138f, 0.1f, 1f));
+        JTusername.setForeground(Color.getHSBColor(0.6444f, 0.82f, 0.44f));
+        JPUserName.setOpaque(false);
+        JTusername.setOpaque(false);
         JPUserName.add(JLusername);
         JPUserName.add(JTusername);
 
         //登录事件
-        JButton JBlogin = new JButton("连接");
-        JBlogin.setSize(100, 61);
-        JBlogin.setFont(new Font("黑体", Font.PLAIN, 50));
+        JPanel JPevent = new JPanel();
+        JPevent.setOpaque(false);
+        //登录事件
+        JButton JBlogin = new JButton(new ImageIcon("image/denglu.png"));
+        JBlogin.setBorderPainted(false);//不绘制边框
+        JBlogin.setContentAreaFilled(false);
+        JBlogin.setSize(20, 12);
+//        JBlogin.setFont(new Font("黑体", Font.PLAIN, 50));
         JBlogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 linkPerformed();
             }
         });
+        JPevent.add(JBlogin);
+
+
+        JButton JBsignin = new JButton(new ImageIcon("image/zhuce.png"));
+        JBsignin.setBorderPainted(false);//不绘制边框
+        JBsignin.setContentAreaFilled(false);
+        JPevent.add(JBsignin);
+
+        c.add(JLtitle);
         c.add(JPip);
         c.add(JPUserName);
-        c.add(JBlogin);
-        setSize(700, 432);
+        c.add(JPevent );
+        setSize(576, 324);
         int windowWidth = getWidth(); // 获得窗口宽
-        int windowHeight = getHeight(); // 获得窗口高
+        int windowHeight = getHeight(); // 获得窗口
         Toolkit kit = Toolkit.getDefaultToolkit(); // 定义工具包
         Dimension screenSize = kit.getScreenSize(); // 获取屏幕的尺寸
         int screenWidth = screenSize.width; // 获取屏幕的宽
