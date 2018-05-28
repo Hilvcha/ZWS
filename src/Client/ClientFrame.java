@@ -30,8 +30,7 @@ class ClientFrame extends JFrame {
     }
 
     ClientFrame(String ip, String userName) {
-
-        ImageIcon img = new ImageIcon("ZWS/src/src/image/_寒冰射手.jpg");//这是背景图片
+        ImageIcon img = new ImageIcon("image/纯色.jpg");//这是背景图片
         JLabel imgLabel = new JLabel(img);//将背景图放在标签里。
         this.getLayeredPane().add(imgLabel, new Integer(Integer.MIN_VALUE));
         imgLabel.setBounds(0,0,img.getIconWidth(), img.getIconHeight());
@@ -65,7 +64,7 @@ class ClientFrame extends JFrame {
         onlineuserlist.setBackground(new Color(0, 0, 0, 0));
 
 
-        btnSend = new JButton(new ImageIcon("ZWS/src/src/image/fasong.png"));
+        btnSend = new JButton(new ImageIcon("image/fasong.png"));
         btnSend.setBorderPainted(false);//不绘制边框
         btnSend.setContentAreaFilled(false);
 
@@ -83,21 +82,6 @@ class ClientFrame extends JFrame {
         contentPane.add(lblUsername);
         contentPane.add(tfMessage);
         contentPane.add(btnSend);
-        tfMessage.addKeyListener(new KeyAdapter() {
-            char word;
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-                super.keyTyped(e);
-                word = e.getKeyChar();
-                if (word == '\n') {
-                    if (tfMessage.getText().equals("")) {
-                    } else {
-                        sendPerformed();
-                    }
-                }
-            }
-        });
 
         onlineuserP = new JScrollPane(onlineuserlist);
         JScrollPane talkwindow = new JScrollPane(textArea);
@@ -167,6 +151,36 @@ class ClientFrame extends JFrame {
 
             }
         });
+        tfMessage.addKeyListener(new KeyAdapter() {
+            char word;
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyTyped(e);
+                word = e.getKeyChar();
+                if (word == '\n') {
+                    if (chatone.isSelected()) {
+                        if (onlineuserlist.getSelectedValuesList().equals(Collections.emptyList())) {
+                            JOptionPane.showMessageDialog(ClientFrame.this, "请选中要私聊的对象~", "warning", JOptionPane.WARNING_MESSAGE);
+                        } else {
+                            List namelist = onlineuserlist.getSelectedValuesList();
+                            for (final String remotename : onlineuserlist.getSelectedValuesList()) {
+                                System.out.println(remotename);
+                                client.sendMessage("%ONE%:" + remotename);
+                                sendPerformed();
+                            }
+                        }
+                    } else {
+                        if (tfMessage.getText().equals("")) {
+                        } else {
+                            client.sendMessage("%ALL%");
+                            sendPerformed();
+                        }
+                    }
+                }
+            }
+        });
+
         //刚打开窗口的焦点聚焦
         this.addWindowListener(new WindowAdapter() {
             @Override

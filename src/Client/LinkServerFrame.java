@@ -29,7 +29,7 @@ public class LinkServerFrame extends JFrame {
 
     LinkServerFrame() {
         //背景
-        ImageIcon img = new ImageIcon("ZWS/src/src/image/_北地之怒.jpg");//这是背景图片
+        ImageIcon img = new ImageIcon("image/_北地之怒.jpg");//这是背景图片
         JLabel imgLabel = new JLabel(img);//将背景图放在标签里。
         this.getLayeredPane().add(imgLabel, new Integer(Integer.MIN_VALUE));
         imgLabel.setBounds(0,0,img.getIconWidth(), img.getIconHeight());
@@ -90,7 +90,7 @@ public class LinkServerFrame extends JFrame {
         JPanel JPevent = new JPanel();
         JPevent.setOpaque(false);
         //登录事件
-        JButton JBlogin = new JButton(new ImageIcon("ZWS/src/src/image/denglu.png"));
+        JButton JBlogin = new JButton(new ImageIcon("image/denglu.png"));
         JBlogin.setBorderPainted(false);//不绘制边框
         JBlogin.setContentAreaFilled(false);
         JBlogin.setSize(20, 12);
@@ -104,7 +104,7 @@ public class LinkServerFrame extends JFrame {
         JPevent.add(JBlogin);
 
 
-        JButton JBsignin = new JButton(new ImageIcon("ZWS/src/src/image/zhuce.png"));
+        JButton JBsignin = new JButton(new ImageIcon("image/zhuce.png"));
         JBsignin.setBorderPainted(false);//不绘制边框
         JBsignin.setContentAreaFilled(false);
         JPevent.add(JBsignin);
