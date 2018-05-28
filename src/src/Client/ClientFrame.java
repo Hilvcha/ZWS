@@ -31,7 +31,7 @@ class ClientFrame extends JFrame {
 
     ClientFrame(String ip, String userName) {
 
-        ImageIcon img = new ImageIcon("image/_寒冰射手.jpg");//这是背景图片
+        ImageIcon img = new ImageIcon("ZWS/src/src/image/_寒冰射手.jpg");//这是背景图片
         JLabel imgLabel = new JLabel(img);//将背景图放在标签里。
         this.getLayeredPane().add(imgLabel, new Integer(Integer.MIN_VALUE));
         imgLabel.setBounds(0,0,img.getIconWidth(), img.getIconHeight());
@@ -65,7 +65,7 @@ class ClientFrame extends JFrame {
         onlineuserlist.setBackground(new Color(0, 0, 0, 0));
 
 
-        btnSend = new JButton(new ImageIcon("image/fasong.png"));
+        btnSend = new JButton(new ImageIcon("ZWS/src/src/image/fasong.png"));
         btnSend.setBorderPainted(false);//不绘制边框
         btnSend.setContentAreaFilled(false);
 
