@@ -1,5 +1,6 @@
 package Server;
 
+import redis.clients.jedis.Jedis;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,12 +12,12 @@ import java.util.HashMap;
 public class ChatRoomServer {
     private ServerSocket serverSocket;
     private HashMap<Socket, String> alluser;
-
+    private Jedis jedis;
     //聊天室服务器构造方法
     public ChatRoomServer() {
         try {
             serverSocket = new ServerSocket(4560);
-
+            jedis = new Jedis("localhost");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -28,6 +29,7 @@ public class ChatRoomServer {
         System.out.println("服务器已启动，等待用户加入......");
         while (true) {
             Socket s = serverSocket.accept();
+            System.out.println("新的连接请求:"+s);
             new ServerThread(s).start();
         }
     }
@@ -105,6 +107,7 @@ public class ChatRoomServer {
 
         public void sendMessageToONEClient(String message, Socket s) throws IOException {
             System.out.println("将要向" + alluser.get(s) + "发送:" + message);
+            jedis.lpush(alluser.get(s),message);
             PrintWriter pw = new PrintWriter(s.getOutputStream());
             pw.println(message);
             pw.flush();
@@ -114,6 +117,7 @@ public class ChatRoomServer {
             System.out.println("将要向所有用户发送:" + message);
             for (Socket s : alluser.keySet()) {
                 PrintWriter pw = new PrintWriter(s.getOutputStream());
+                jedis.lpush(alluser.get(s),message);
                 pw.println(message);
                 pw.flush();
             }
