@@ -1,18 +1,11 @@
 package Client;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.List;
-
 
 class ChatRoomClient {
     private Socket socket;
@@ -27,7 +20,6 @@ class ChatRoomClient {
         pWriter = new PrintWriter(socket.getOutputStream());
     }
 
-
     //发送消息
     public void sendMessage(String str) {
         pWriter.println(str);
@@ -39,7 +31,6 @@ class ChatRoomClient {
         try {
             String str = bufferedReader.readLine();
             System.out.println("接收到消息:" + str);
-
             return str;
         } catch (IOException e) {
             e.printStackTrace();

@@ -5,5 +5,4 @@ public class Start {
             LinkServerFrame linkserver;
             linkserver = new LinkServerFrame();
         }
-
 }
