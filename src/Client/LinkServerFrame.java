@@ -14,6 +14,8 @@ public class LinkServerFrame extends JFrame {
     private JTextField JTusername;
     private JPasswordField JTpassword;
 
+    private static final String host="192.168.31.112";
+
     private void linkPerformed() {
         //客户端连接时文本框不为空
         if (JTip.getText().equals("") || JTusername.getText().equals("")) {
@@ -32,7 +34,8 @@ public class LinkServerFrame extends JFrame {
     PreparedStatement ps;
     ResultSet rs;
     public static Connection getConnection(){
-        String url="jdbc:mysql://localhost:3306/wsychat";
+//        String url="jdbc:mysql://127.0.0.1:3306/wsychat";
+        String url="jdbc:mysql://"+host+":3306/wsychat";
         String userName="root";
         String password="045X";
         try {
