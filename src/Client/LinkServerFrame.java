@@ -81,7 +81,7 @@ public class LinkServerFrame extends JFrame {
         JLabel JLusername = new JLabel("客户端name：", JLabel.CENTER);
         JLusername.setFont(new Font("黑体", Font.PLAIN, 30));
 
-        JTusername = new JTextField("小机灵鬼");
+        JTusername = new JTextField("A");
         JTusername.setFont(new Font("黑体", Font.PLAIN, 30));
         JTusername.setColumns(21);
 

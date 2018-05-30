@@ -132,3 +132,4 @@ JavaFx.iml
 /server/server.iml
 /client/client.iml
 *.iml
+*.project

@@ -28,6 +28,16 @@ class ClientFrame extends JFrame {
 
     //构造聊天室窗口（由登录窗口调用）
     ClientFrame(String ip, String userName) {
+        ReadMessageThread messageThread = new ReadMessageThread();
+        try {  //发送消息事件
+            client = new ChatRoomClient(ip, 4560);
+            client.sendMessage("%NAME%:" + userName);
+        } catch (UnknownHostException el) {
+            System.out.println("host 无法处理");
+            el.printStackTrace();
+        } catch (IOException el) {
+            el.printStackTrace();
+        }
         ImageIcon img = new ImageIcon("src/image/纯色.jpg");  //这是背景图片
         JLabel imgLabel = new JLabel(img);  //将背景图放在标签里
         this.getLayeredPane().add(imgLabel, new Integer(Integer.MIN_VALUE));
@@ -40,19 +50,6 @@ class ClientFrame extends JFrame {
         this.userName = userName;
 
         onlineuser = new DefaultListModel();
-        ReadMessageThread messageThread = new ReadMessageThread();
-
-        try {  //发送消息事件
-            client = new ChatRoomClient(ip, 4560);
-            messageThread.start();
-            client.sendMessage("%NAME%:" + userName);
-            client.sendMessage("%REQUESTALLUSER%");
-        } catch (UnknownHostException el) {
-            System.out.println("host 无法处理");
-            el.printStackTrace();
-        } catch (IOException el) {
-            el.printStackTrace();
-        }
 
         JPanel westp = new JPanel(new BorderLayout());  //西侧面板（在线列表、私聊勾选）
         //在线列表
@@ -145,6 +142,8 @@ class ClientFrame extends JFrame {
 
 
         textArea = new JTextArea();  //中部文字区域
+
+
         JScrollPane talkwindow = new JScrollPane(textArea);
         talkwindow.setBorder(BorderFactory.createLineBorder(Color.getHSBColor(0.3138f, 0.1f, 1f)));
         talkwindow.setPreferredSize(new Dimension(400, 340));
@@ -165,11 +164,14 @@ class ClientFrame extends JFrame {
         //c.add(westp, BorderLayout.WEST);
         //c.add(talkwindow, BorderLayout.CENTER);
 
+        messageThread.start();
 
         setSize(768, 432);
+        client.sendMessage("%REQUESTALLUSER%");
         setVisible(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
+
 
 
         //刚打开窗口的焦点聚焦
@@ -212,7 +214,7 @@ class ClientFrame extends JFrame {
                     List namelist = onlineuserlist.getSelectedValuesList();
                     for (final String remotename : onlineuserlist.getSelectedValuesList()) {
                         System.out.println(remotename);
-                        client.sendMessage("%ONE%:" + remotename);
+                        client.sendMessage("%ONE%:" + remotename.split(":")[0]);
                         sendPerformed();
                     }
                     tfMessage.setText("");
@@ -365,15 +367,20 @@ class ClientFrame extends JFrame {
                         if (str.contains("%USEREND%")) {
                             break;
                         }
-                        if (onlineuser.contains(str)) {
+                        if (onlineuser.contains(str+":在线")) {
                         } else {
-                            onlineuser.addElement(str);
+                            onlineuser.removeElement(str+":在线");
+                            onlineuser.addElement(str+":在线");
+                            System.out.println("tianjiale");
                         }
                     }
                 } else if (str.contains("%USERADD%")) {
-                    onlineuser.addElement(str.split(":")[1]);
+                    onlineuser.removeElement(str.split(":")[1]+":离线");
+                    onlineuser.addElement(str.split(":")[1]+":在线");
                 } else if (str.contains("%USERDEL%")) {
-                    onlineuser.removeElement(str.split(":")[1]);
+                    onlineuser.removeElement(str.split(":")[1]+":在线");
+                    onlineuser.addElement(str.split(":")[1]+":离线");
+
                 } else if (str.contains("%ALL%") || str.contains("%ONE%")) {
                     if (str.contains("%ONE%")) {
                         String remotename = str.split(":")[1];
