@@ -9,10 +9,19 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 public class ChatRoomServer {
     private ServerSocket serverSocket;
     private HashMap<Socket, String> alluser;
     private Jedis jedis;
+
     //聊天室服务器构造方法
     public ChatRoomServer() {
         try {
@@ -26,12 +35,15 @@ public class ChatRoomServer {
 
     //启动服务器
     public void startService() throws IOException {
+
+
         System.out.println("服务器已启动，等待用户加入......");
         while (true) {
             Socket s = serverSocket.accept();
             System.out.println("新的连接请求:"+s);
             new ServerThread(s).start();
         }
+
     }
 
     //服务线程内部类
@@ -51,7 +63,7 @@ public class ChatRoomServer {
                     if (str.contains("%NAME%")) {
                         String name = str.split(":")[1];
                         if (alluser.values().contains(name)) {  //用户名有重复
-                            String message = "%NAMEERROR%";
+                            String message = "%NAMEERROR_RE%";
                             sendMessageToONEClient(message, socket);
                         } else {  //用户加入
                             alluser.put(socket, name);

@@ -355,7 +355,8 @@ class ClientFrame extends JFrame {
         public void run() {
             while (!exit) {
                 String str = client.reciveMessage();
-                if (str.contains("%NAMEERROR%")) {  //重名，关闭原登录窗口，弹出提示窗口，然后打开新登录窗口
+                System.out.println(str);
+                if (str.contains("%NAMEERROR_RE%")) {  //重名，关闭原登录窗口，弹出提示窗口，然后打开新登录窗口
                     ClientFrame.this.dispose();
                     JOptionPane.showMessageDialog(ClientFrame.this, "你的名字重复了~", "Warning", JOptionPane.WARNING_MESSAGE);
                     new LinkServerFrame();
