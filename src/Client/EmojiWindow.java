@@ -26,7 +26,7 @@ public class EmojiWindow extends JWindow {
     class ImagePanel extends JPanel {
         public void paint(Graphics g) {
             super.paint(g);
-            ImageIcon icon = new ImageIcon("face/"+i+".gif");
+            ImageIcon icon = new ImageIcon("src/face/"+i+".gif");
             g.drawImage(icon.getImage(), 0, 0, 30, 30, this);
         }
     }

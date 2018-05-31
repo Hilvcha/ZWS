@@ -22,7 +22,7 @@ class ClientFrame extends JFrame {
     private DefaultListModel onlineuser;
     private JList<String> onlineuserlist;
     private JScrollPane onlineuserP;
-
+    private JCheckBox chatone;
     private JComboBox selectBox;
     private File file_output;
 
@@ -31,75 +31,20 @@ class ClientFrame extends JFrame {
 
     private int setting_count = 0;  //记录setting按钮的点击次数
 
-    private void sendPerformed() {
-        Date date = new Date();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-        client.sendMessage("%START%:" + userName + "  " + df.format(date) + ":\n" + tfMessage.getText() + "%END%");
-    }
-
-    private void emojiPerform(String state) {
-        if (emoji_count % 2 == 0) {
-            JEmojiTable emojiTable = new JEmojiTable();
-            emojiTable.setVisible(true);
-        } else if(emoji_count % 2 != 0){
-            if (emojiTable.emoji_value != "") {
-                if(state.contains("%ONE%"))
-                {
-                    String name=state.split(":")[1];
-                    client.sendMessage("%ONE%:" + name);
-                }else if(state.contains("%ALL%")){
-                    client.sendMessage("%ALL%");
-                }
-                String temp = emojiTable.emoji_value;
-                //System.out.println(temp);
-                Date date = new Date();
-                SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-                client.sendMessage("%EMOJI%:" + userName + "  " + df.format(date) + "：\n已接收表情~\n" + temp + "%END%");
-                emojiTable.emoji_value = "";
-            }
-        }
-        emoji_count++;
-    }
-
-    private void choosePerform() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setDialogTitle("将要发送的文件");
-        chooser.showDialog(new JLabel(), "选择");
-        try {
-            file_output = chooser.getSelectedFile();
-            //System.out.println(file_output.getAbsolutePath());
-            //System.out.println(file_output.getName());
-            //System.out.println(file_output.length());
-
-            //client.sendMessage("%FILE%:" + userName + "  " + df.format(date) + "：\n" + "文件名.文件后缀名" + "\n" + 文件转为二进制码 + "%END%");
-            //当做message发送过去
-            //接收到后根据后缀名解析，二进制码转回文件，存储到Download文件夹中
-
-            String temp = file_output.getName();
-            String file_name = temp.substring(0, temp.lastIndexOf("."));
-            String file_type = temp.substring(temp.lastIndexOf(".") + 1);
-            long file_length = file_output.length();
-            //System.out.println(file_name);
-            //System.out.println(file_type);
-            //System.out.println(file_length);
-
-            String transmit_data = fileToBase64(file_output);
-            //System.out.println(transmit_data);  //将要传输的base64字符串
-            //base64ToFile(transmit_data,"test.txt");
-
-            Date date = new Date();
-            SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-            client.sendMessage("%FILE%:" + userName + "  " + df.format(date) + "：\n已接收文件：" + temp + "\n" + transmit_data + "%END%");
-
-        } catch (Exception e) {
-            System.out.println("未选择文件");
-        }
-    }
 
     //构造聊天室窗口（由登录窗口调用）
     ClientFrame(String ip, String userName) {
-        ImageIcon img = new ImageIcon("image/纯色.jpg");  //这是背景图片
+        ReadMessageThread messageThread = new ReadMessageThread();
+        try {  //发送消息事件
+            client = new ChatRoomClient(ip, 4560);
+            client.sendMessage("%NAME%:" + userName);
+        } catch (UnknownHostException el) {
+            System.out.println("host 无法处理");
+            el.printStackTrace();
+        } catch (IOException el) {
+            el.printStackTrace();
+        }
+        ImageIcon img = new ImageIcon("src/image/纯色.jpg");  //这是背景图片
         JLabel imgLabel = new JLabel(img);  //将背景图放在标签里
         this.getLayeredPane().add(imgLabel, new Integer(Integer.MIN_VALUE));
         imgLabel.setBounds(0, 0, img.getIconWidth(), img.getIconHeight());
@@ -111,19 +56,6 @@ class ClientFrame extends JFrame {
         this.userName = userName;
 
         onlineuser = new DefaultListModel();
-        ReadMessageThread messageThread = new ReadMessageThread();
-
-        try {  //发送消息事件
-            client = new ChatRoomClient(ip, 4560);
-            messageThread.start();
-            client.sendMessage("%NAME%:" + userName);
-            client.sendMessage("%REQUESTALLUSER%");
-        } catch (UnknownHostException el) {
-            System.out.println("host 无法处理");
-            el.printStackTrace();
-        } catch (IOException el) {
-            el.printStackTrace();
-        }
 
         JPanel westp = new JPanel(new BorderLayout());  //西侧面板（在线列表、私聊勾选）
         //在线列表
@@ -138,7 +70,7 @@ class ClientFrame extends JFrame {
         onlineuserP.setOpaque(false);
         onlineuserP.getViewport().setOpaque(false);
         //私聊勾选框
-        JCheckBox chatone = new JCheckBox("私聊");
+        chatone = new JCheckBox("私聊");
         //chatone.setBackground(Color.yellow);
         chatone.setFont(new Font("微软雅黑", Font.BOLD, 15));
         chatone.setOpaque(false);
@@ -166,26 +98,7 @@ class ClientFrame extends JFrame {
                 super.keyTyped(e);
                 word = e.getKeyChar();
                 if (word == '\n') {
-                    if (chatone.isSelected()) {
-                        if (onlineuserlist.getSelectedValuesList().equals(Collections.emptyList())) {
-                            JOptionPane.showMessageDialog(ClientFrame.this, "请选中要私聊的对象~", "Warning", JOptionPane.WARNING_MESSAGE);
-                        } else {
-                            List namelist = onlineuserlist.getSelectedValuesList();
-                            for (final String remotename : onlineuserlist.getSelectedValuesList()) {
-                                System.out.println(remotename);
-                                client.sendMessage("%ONE%:" + remotename);
-                                sendPerformed();
-                            }
-                            tfMessage.setText("");
-                        }
-                    } else {
-                        if (tfMessage.getText().equals("")) {
-                        } else {
-                            client.sendMessage("%ALL%");
-                            sendPerformed();
-                            tfMessage.setText("");
-                        }
-                    }
+                    sendaction();
                 }
             }
         });
@@ -200,26 +113,27 @@ class ClientFrame extends JFrame {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == 1) {
                     if (e.getItem().toString() == "文字") {
-                        btnSend.setIcon(new ImageIcon("image/fasong.png"));
+                        btnSend.setIcon(new ImageIcon("src/image/fasong.png"));
                         btnSend.setText("发送");
                     } else if (e.getItem().toString() == "表情") {
-                        btnSend.setIcon(new ImageIcon("image/biaoqing.png"));
+                        btnSend.setIcon(new ImageIcon("src/image/biaoqing.png"));
                         btnSend.setText("表情");
                     } else if (e.getItem().toString() == "文件") {
-                        btnSend.setIcon(new ImageIcon("image/xuanze.png"));
+                        btnSend.setIcon(new ImageIcon("src/image/xuanze.png"));
                         btnSend.setText("选择");
                     } else if (e.getItem().toString() == "语音") {
-                        btnSend.setIcon(new ImageIcon("image/luzhi.png"));
+                        btnSend.setIcon(new ImageIcon("src/image/luzhi.png"));
                         btnSend.setText("录制");
                     }
                 }
             }
         });
         //发送按钮
-        btnSend = new JButton(new ImageIcon("image/fasong.png"));
+        btnSend = new JButton(new ImageIcon("src/image/fasong.png"));
         btnSend.setText("发送");
         btnSend.setBorderPainted(false);  //不绘制边框
         btnSend.setContentAreaFilled(false);
+        selectBox.setSelectedIndex(0);
         btnSend.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -252,12 +166,12 @@ class ClientFrame extends JFrame {
                             List namelist = onlineuserlist.getSelectedValuesList();
                             for (final String remotename : onlineuserlist.getSelectedValuesList()) {
                                 //System.out.println(remotename);
-                                String one="%ONE%:" + remotename;
+                                String one = "%ONE%:" + remotename;
                                 emojiPerform(one);
                             }
                         }
                     } else {
-                        String all="%ALL%";
+                        String all = "%ALL%";
                         emojiPerform(all);
                     }
                 } else if (btnSend.getText() == "选择") {  //选择按钮事件（改为selectBox.getSelectedItem().toString()=="文件"）
@@ -308,7 +222,7 @@ class ClientFrame extends JFrame {
         //背景设置选项
         JPanel eastp = new JPanel();
         eastp.setOpaque(false);
-        JButton setting = new JButton(new ImageIcon("image/setting_small.png"));
+        JButton setting = new JButton(new ImageIcon("src/image/setting_small.png"));
         //setting.setText("Setting");
         setting.setPreferredSize(new Dimension(20, 20));  //设置尺寸
         setting.setBorderPainted(false);  //不绘制边框
@@ -318,17 +232,17 @@ class ClientFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 setting_count++;
                 if (setting_count % 6 == 0) {
-                    imgLabel.setIcon(new ImageIcon("image/纯色.jpg"));
+                    imgLabel.setIcon(new ImageIcon("src/image/纯色.jpg"));
                 } else if (setting_count % 6 == 1) {
-                    imgLabel.setIcon(new ImageIcon("image/_寒冰射手.jpg"));
+                    imgLabel.setIcon(new ImageIcon("src/image/_寒冰射手.jpg"));
                 } else if (setting_count % 6 == 2) {
-                    imgLabel.setIcon(new ImageIcon("image/背景1.jpg"));
+                    imgLabel.setIcon(new ImageIcon("src/image/背景1.jpg"));
                 } else if (setting_count % 6 == 3) {
-                    imgLabel.setIcon(new ImageIcon("image/背景2.jpg"));
+                    imgLabel.setIcon(new ImageIcon("src/image/背景2.jpg"));
                 } else if (setting_count % 6 == 4) {
-                    imgLabel.setIcon(new ImageIcon("image/背景3.jpg"));
+                    imgLabel.setIcon(new ImageIcon("src/image/背景3.jpg"));
                 } else if (setting_count % 6 == 5) {
-                    imgLabel.setIcon(new ImageIcon("image/背景4.jpg"));
+                    imgLabel.setIcon(new ImageIcon("src/image/背景4.jpg"));
                 }
             }
         });
@@ -341,8 +255,10 @@ class ClientFrame extends JFrame {
         //c.add(westp, BorderLayout.WEST);
         //c.add(talkwindow, BorderLayout.CENTER);
 
+        messageThread.start();
 
         setSize(768, 432);
+        client.sendMessage("%REQUESTALLUSER%");
         setVisible(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -380,6 +296,131 @@ class ClientFrame extends JFrame {
         });
     }
 
+    private void sendaction() {
+        if (selectBox.getSelectedItem().toString() == "文字") {  //发送按钮事件
+            if (chatone.isSelected()) {
+                if (onlineuserlist.getSelectedValuesList().equals(Collections.emptyList())) {
+                    JOptionPane.showMessageDialog(ClientFrame.this, "请选中要私聊的对象~", "warning", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    List namelist = onlineuserlist.getSelectedValuesList();
+                    for (final String remotename : onlineuserlist.getSelectedValuesList()) {
+                        System.out.println(remotename);
+                        client.sendMessage("%ONE%:" + remotename.split(":")[0]);
+                        sendPerformed();
+                    }
+                    tfMessage.setText("");
+                }
+            } else {
+                if (tfMessage.getText().equals("")) {
+                } else {
+                    client.sendMessage("%ALL%");
+                    sendPerformed();
+                    tfMessage.setText("");
+                }
+            }
+        } else if (selectBox.getSelectedItem().toString()=="表情") {  //表情按钮事件
+            if (chatone.isSelected()) {
+                if (onlineuserlist.getSelectedValuesList().equals(Collections.emptyList())) {
+                    JOptionPane.showMessageDialog(ClientFrame.this, "请选中要私聊的对象~", "warning", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    List namelist = onlineuserlist.getSelectedValuesList();
+                    for (final String remotename : onlineuserlist.getSelectedValuesList()) {
+                        //System.out.println(remotename);
+                        String one = "%ONE%:" + remotename.split(":")[0];
+                        emojiPerform(one);
+                    }
+                }
+            } else {
+                String all = "%ALL%";
+                emojiPerform(all);
+            }
+        } else if (selectBox.getSelectedItem().toString() == "文件") {  //选择按钮事件
+            if (chatone.isSelected()) {
+                if (onlineuserlist.getSelectedValuesList().equals(Collections.emptyList())) {
+                    JOptionPane.showMessageDialog(ClientFrame.this, "请选中要私聊的对象~", "warning", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    List namelist = onlineuserlist.getSelectedValuesList();
+                    for (final String remotename : onlineuserlist.getSelectedValuesList()) {
+                        System.out.println(remotename);
+                        client.sendMessage("%ONE%:" + remotename.split(":")[0]);
+                        choosePerform();
+                    }
+                }
+            } else {
+                client.sendMessage("%ALL%");
+                choosePerform();
+            }
+        } else if (selectBox.getSelectedItem().toString() == "语音") {  //录制按钮事件
+            System.out.println("sound");  //待加入语音录制模块
+        }
+    }
+
+    private void sendPerformed() {
+        Date date = new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+        client.sendMessage("%START%:" + userName + "  " + df.format(date) + ":\n" + tfMessage.getText() + "%END%");
+    }
+
+    private void emojiPerform(String state) {
+        if (emoji_count % 2 == 0) {
+            JEmojiTable emojiTable = new JEmojiTable();
+            emojiTable.setVisible(true);
+        } else if (emoji_count % 2 != 0) {
+            if (emojiTable.emoji_value != "") {
+                if (state.contains("%ONE%")) {
+                    String name = state.split(":")[1];
+                    client.sendMessage("%ONE%:" + name);
+                } else if (state.contains("%ALL%")) {
+                    client.sendMessage("%ALL%");
+                }
+                String temp = emojiTable.emoji_value;
+                //System.out.println(temp);
+                Date date = new Date();
+                SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                client.sendMessage("%EMOJI%:" + userName + "  " + df.format(date) + "：\n已接收表情~\n" + temp + "%END%");
+                emojiTable.emoji_value = "";
+            }
+        }
+        emoji_count++;
+    }
+
+    private void choosePerform() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setDialogTitle("将要发送的文件");
+        chooser.showDialog(new JLabel(), "选择");
+        try {
+            file_output = chooser.getSelectedFile();
+            //System.out.println(file_output.getAbsolutePath());
+            //System.out.println(file_output.getName());
+            //System.out.println(file_output.length());
+
+            //client.sendMessage("%FILE%:" + userName + "  " + df.format(date) + "：\n" + "文件名.文件后缀名" + "\n" + 文件转为二进制码 + "%END%");
+            //当做message发送过去
+            //接收到后根据后缀名解析，二进制码转回文件，存储到Download文件夹中
+
+            String temp = file_output.getName();
+            String file_name = temp.substring(0, temp.lastIndexOf("."));
+            String file_type = temp.substring(temp.lastIndexOf(".") + 1);
+            long file_length = file_output.length();
+            //System.out.println(file_name);
+            //System.out.println(file_type);
+            //System.out.println(file_length);
+
+            String transmit_data = fileToBase64(file_output);
+            //System.out.println(transmit_data);  //将要传输的base64字符串
+            //base64ToFile(transmit_data,"test.txt");
+
+            Date date = new Date();
+            SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+            client.sendMessage("%FILE%:" + userName + "  " + df.format(date) + "：\n已接收文件：" + temp + "\n" + transmit_data + "%END%");
+
+        } catch (Exception e) {
+            System.out.println("未选择文件");
+        }
+    }
+
+
     //file编码为base64字符串
     public static String fileToBase64(File file) {
         String base64 = null;
@@ -407,7 +448,7 @@ class ClientFrame extends JFrame {
     //base64字符串解码为file
     public static void base64ToFile(String base64, String fileName) {
         File file = null;
-        String filePath = "./Downloads";
+        String filePath = "./src/Downloads";
         File dir = new File(filePath);
         if (!dir.exists() && !dir.isDirectory()) {
             dir.mkdirs();
@@ -457,15 +498,20 @@ class ClientFrame extends JFrame {
                         if (str.contains("%USEREND%")) {
                             break;
                         }
-                        if (onlineuser.contains(str)) {
+                        if (onlineuser.contains(str + ":在线")) {
                         } else {
-                            onlineuser.addElement(str);
+                            onlineuser.removeElement(str + ":在线");
+                            onlineuser.addElement(str + ":在线");
+                            System.out.println("tianjiale");
                         }
                     }
                 } else if (str.contains("%USERADD%")) {
-                    onlineuser.addElement(str.split(":")[1]);
+                    onlineuser.removeElement(str.split(":")[1] + ":离线");
+                    onlineuser.addElement(str.split(":")[1] + ":在线");
                 } else if (str.contains("%USERDEL%")) {
-                    onlineuser.removeElement(str.split(":")[1]);
+                    onlineuser.removeElement(str.split(":")[1] + ":在线");
+                    onlineuser.addElement(str.split(":")[1] + ":离线");
+
                 } else if (str.contains("%ALL%") || str.contains("%ONE%")) {
                     if (str.contains("%ONE%")) {
                         String remotename = str.split(":")[1];
@@ -521,7 +567,7 @@ class ClientFrame extends JFrame {
                         while (true) {
                             str = client.reciveMessage();
                             if (str.contains("%END%")) {
-                                emoji_num=Integer.parseInt(str.replaceAll("%END%", ""));
+                                emoji_num = Integer.parseInt(str.replaceAll("%END%", ""));
                                 break;
                             }
                             textArea.append(str + "\n\n");
