@@ -13,14 +13,14 @@ public class UseJedisPool {
     static{
         JedisPoolConfig config = new JedisPoolConfig();
         //配置最大jedis实例数
-        config.setMaxTotal(80);
+        config.setMaxTotal(800);
         //配置资源池最大闲置数
         config.setMaxIdle(200);
         //等待可用连接的最大时间
         config.setMaxWaitMillis(5);
         //在borrow一个jedis实例时，是否提前进行validate操作；如果为true，则得到的jedis实例均是可用的
         config.setTestOnBorrow(true);
-        jedisPool = new JedisPool(config,"",6379);
+        jedisPool = new JedisPool(config,"192.168.31.112",6379,2000);
     }
 
     //获取Jedis实例

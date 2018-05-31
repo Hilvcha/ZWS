@@ -61,7 +61,8 @@ public class LinkServerFrame extends JFrame {
     private void login(){
         try {
             String account = JTusername.getText();
-            String password = JTpassword.getText();
+            String password =String.valueOf(JTpassword.getPassword());
+
             System.out.println(account );
             System.out.println(password);
             Connection con = getConnection();
